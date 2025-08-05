@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 export const connectDB = () =>{
    try{
-    mongoose.connect('mongodb://127.0.0.1:27017/skayShare');
+    mongoose.connect(process.env.DB_URL);
     console.log('Connected to Database!');
    }
    catch(error){
