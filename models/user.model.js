@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  avtarUrl: { type: String },
+  avatar: { url: { type: String }, publicId: { type: String } },
   email: {
     type: String,
     required: true,
@@ -11,8 +11,8 @@ const userSchema = new mongoose.Schema({
     lowecase: true,
     trim: true,
   },
-  firstname: { type: String, trim: true },
-  lastname: { type: String, trim: true },
+  firstname: { type: String, trim: true, default: "" },
+  lastname: { type: String, trim: true, default: "" },
   password: { type: String, required: true, trim: true },
   otp: { type: String },
   isVerified: { type: Boolean },
@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     expiresAt: { type: Date },
   },
   refreshToken: { type: String },
-  resetPassToken: { token: { type: String }, tokenExpires: {type: Date} },
+  resetPassToken: { token: { type: String }, tokenExpires: { type: Date } },
 });
 
 userSchema.pre("save", async function (next) {
@@ -63,4 +63,4 @@ userSchema.methods.generateRefreshToken = function () {
   );
 };
 
-export const userModel = mongoose.model("users", userSchema);
+export const userModel = mongoose.model("Users", userSchema);

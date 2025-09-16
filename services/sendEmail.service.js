@@ -1,7 +1,12 @@
 import { ApiError } from "../utils/ApiError.js";
 import nodemailer from "nodemailer";
 
-export const sendEmail = async (to, subject, htmlTamplete) => {
+export const sendEmail = async ({
+  from = "<noreply@skayshare.com>",
+  to,
+  subject,
+  htmlTamplete,
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.MAILE_HOSTER,
@@ -13,14 +18,13 @@ export const sendEmail = async (to, subject, htmlTamplete) => {
     });
 
     let info = {
-      from: "<noreply@skayshare.com>",
+      from: from,
       to: to,
       subject: subject,
       html: htmlTamplete,
     };
 
     await transporter.sendMail(info);
-    return { success: true };
   } catch (err) {
     console.error("❌ Unable to Send Email!...:", err.message);
     throw new ApiError(500, "Unable to Send Email!...");

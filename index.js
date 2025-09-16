@@ -8,7 +8,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: [process.env.CLIENT_AUTH_URL, process.env.APP_URL],
+    // origin: [process.env.CLIENT_AUTH_URL, process.env.APP_URL],
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
   })
 );
@@ -21,9 +22,13 @@ app.use(cookieParser());
 
 // import routes
 import userRouter from "./routes/user.routes.js";
+import transfersRouter from "./routes/transfer.routes.js"
+import contactRouter from "./routes/contact.routes.js"
 
 // declear routes
 app.use("/api/v1/user", userRouter);
+app.use("/api/v1/transfer", transfersRouter);
+app.use("/api/v1/contact", contactRouter);
 
 app.get("/", (req, res) => {
   res.send("skayShare Backend Server!");
