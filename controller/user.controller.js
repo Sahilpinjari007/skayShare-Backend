@@ -29,7 +29,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
     return { accessToken, refreshToken };
   } catch (error) {
     console.log(error);
-
+    
     throw new ApiError(500, "Something went wrong!");
   }
 };
@@ -45,15 +45,15 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         new ApiResponse(
           201,
           { isTokenRefreshd: false },
-          "Refresh token missing!"
-        )
+          "Refresh token missing!",
+        ),
       );
 
   try {
     // decode refresh token
     const decodeToken = jwt.verify(
       incomingRefreshToken,
-      process.env.REFRESH_TOKEN_SECRET
+      process.env.REFRESH_TOKEN_SECRET,
     );
 
     const user = await userModel.findById(decodeToken._id);
@@ -66,8 +66,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
           new ApiResponse(
             201,
             { isTokenRefreshd: false },
-            "Invalid refresh token!"
-          )
+            "Invalid refresh token!",
+          ),
         );
     }
 
@@ -79,8 +79,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
           new ApiResponse(
             201,
             { isTokenRefreshd: false },
-            "Refresh token is used or Expird!"
-          )
+            "Refresh token is used or Expird!",
+          ),
         );
     }
 
@@ -91,7 +91,7 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     };
 
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
-      user._id
+      user._id,
     );
 
     return res
@@ -102,8 +102,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { isTokenRefreshd: true, accessToken, refreshToken },
-          "Access token refreshed!"
-        )
+          "Access token refreshed!",
+        ),
       );
   } catch (error) {
     return res
@@ -112,8 +112,8 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { isTokenRefreshd: false },
-          "Invalid refresh token!"
-        )
+          "Invalid refresh token!",
+        ),
       );
   }
 });
@@ -126,8 +126,8 @@ export const autoLogin = asyncHandler(async (req, res) => {
         user: req.user,
         isLogdIn: true,
       },
-      "login Successfuly!..."
-    )
+      "login Successfuly!...",
+    ),
   );
 });
 
@@ -161,6 +161,7 @@ export const checkIsExistingUser = asyncHandler(async (req, res) => {
         htmlTamplete: sendOTP(OTP),
       });
     } catch (error) {
+      await otpModel.deleteOne({ email });
       throw new ApiError(500, "Unable to Send OTP!...");
     }
 
@@ -170,15 +171,19 @@ export const checkIsExistingUser = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { isExistingUser: true, OTPExpiresAt },
-          `OTP send on email!`
-        )
+          `OTP send on email!`,
+        ),
       );
   }
 
   res
     .status(200)
     .json(
-      new ApiResponse(200, { isExistingUser: false }, `Please Create New User!`)
+      new ApiResponse(
+        200,
+        { isExistingUser: false },
+        `Please Create New User!`,
+      ),
     );
 });
 
@@ -224,6 +229,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     await userModel.deleteOne({ email });
+    await otpModel.deleteOne({ email });
     throw new ApiError(500, "Unable to Send OTP!...");
   }
 
@@ -233,8 +239,8 @@ export const registerUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isOTPSend: true, OTPExpiresAt },
-        `OTP send on email`
-      )
+        `OTP send on email`,
+      ),
     );
 });
 
@@ -270,6 +276,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       htmlTamplete: sendOTP(OTP),
     });
   } catch (error) {
+    await otpModel.deleteOne({ email });
     throw new ApiError(500, "Unable to Send OTP!...");
   }
 
@@ -279,8 +286,8 @@ export const loginUser = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isOTPSend: true, OTPExpiresAt },
-        `OTP send on email`
-      )
+        `OTP send on email`,
+      ),
     );
 });
 
@@ -316,6 +323,7 @@ export const resentOTP = asyncHandler(async (req, res) => {
       htmlTamplete: sendOTP(OTP),
     });
   } catch (error) {
+    await otpModel.deleteOne({ email });
     throw new ApiError(500, "Unable to Send OTP!...");
   }
 
@@ -325,8 +333,8 @@ export const resentOTP = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isOTPResend: true, OTPExpiresAt },
-        `OTP send on email`
-      )
+        `OTP send on email`,
+      ),
     );
 });
 
@@ -363,7 +371,7 @@ export const verfiyOTP = asyncHandler(async (req, res) => {
     .select("-password -refreshToken");
 
   const { refreshToken, accessToken } = await generateAccessAndRefereshTokens(
-    user._id
+    user._id,
   );
 
   const options = {
@@ -385,8 +393,8 @@ export const verfiyOTP = asyncHandler(async (req, res) => {
           accessToken,
           refreshToken,
         },
-        "login Successfuly!..."
-      )
+        "login Successfuly!...",
+      ),
     );
 });
 
@@ -401,7 +409,7 @@ export const logout = asyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
 
   const options = {
@@ -415,7 +423,7 @@ export const logout = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken", options)
     .clearCookie("accessToken", options)
     .json(
-      new ApiResponse(200, { isLogdIn: false, user: null }, "user logged out!")
+      new ApiResponse(200, { isLogdIn: false, user: null }, "user logged out!"),
     );
 });
 
@@ -440,7 +448,7 @@ export const reqResetPassword = asyncHandler(async (req, res) => {
     process.env.ACCESS_TOKEN_SECRET + process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: "30m",
-    }
+    },
   );
 
   user.resetPassToken = {
@@ -466,7 +474,7 @@ export const reqResetPassword = asyncHandler(async (req, res) => {
   res
     .status(200)
     .json(
-      new ApiResponse(200, { isLinkSend: true, user }, `Link send on email!`)
+      new ApiResponse(200, { isLinkSend: true, user }, `Link send on email!`),
     );
 });
 
@@ -508,7 +516,7 @@ export const updatePassword = asyncHandler(async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     );
 
     await user.save();
@@ -527,8 +535,8 @@ export const updatePassword = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { isPassReset: true },
-          "Password Changed Successfuly!"
-        )
+          "Password Changed Successfuly!",
+        ),
       );
   }
 
@@ -541,7 +549,7 @@ export const updatePassword = asyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
 
   await user.save();
@@ -552,8 +560,8 @@ export const updatePassword = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isPassReset: true },
-        "Password Changed Successfuly!"
-      )
+        "Password Changed Successfuly!",
+      ),
     );
 });
 
@@ -566,7 +574,7 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
 
   const [uploaded] = await uploadFilesToCloudinary(
     [req.file],
-    "skayshare/avatars"
+    "skayshare/avatars",
   );
 
   if (!uploaded) {
@@ -576,7 +584,7 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
   const user = await userModel.findByIdAndUpdate(
     _id,
     { avatar: { url: uploaded?.url, publicId: uploaded?.public_id } },
-    { new: true }
+    { new: true },
   );
 
   return res
@@ -585,8 +593,8 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isAvatarUpload: true, user },
-        "Avatar uploaded successfully"
-      )
+        "Avatar uploaded successfully",
+      ),
     );
 });
 
@@ -612,7 +620,7 @@ export const deleteAvatar = asyncHandler(async (req, res) => {
     },
     {
       new: true,
-    }
+    },
   );
 
   return res
@@ -621,8 +629,8 @@ export const deleteAvatar = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isAvatarDeleted: true, user: updatedUser },
-        "Avatar deleted successfully"
-      )
+        "Avatar deleted successfully",
+      ),
     );
 });
 
@@ -638,7 +646,7 @@ export const updateUserName = asyncHandler(async (req, res) => {
     .findByIdAndUpdate(
       userId,
       { $set: { firstname, lastname } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     )
     .select("-password -refreshToken -otp -resetPassToken");
 
@@ -652,8 +660,8 @@ export const updateUserName = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isUserUpdated: true, user: updatedUser },
-        "User updated successfully"
-      )
+        "User updated successfully",
+      ),
     );
 });
 
@@ -671,8 +679,7 @@ export const deleteAccount = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { isAccountDeleted: true, user: null },
-        "This account was deleted!"
-      )
+        "This account was deleted!",
+      ),
     );
 });
-
